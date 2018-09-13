@@ -1,9 +1,8 @@
-#frozen_string_literal: true
+# frozen_string_literal: true
 
-require 'json'
+require "json"
 
 class ByteInterpreter
-
   ##
   # The Instructions class represents a collection of ordered operations to
   # perform on an IO stream. This class is used by ByteInterpreter to either
@@ -27,7 +26,6 @@ class ByteInterpreter
   # passed into ByteInterpreter#load_instructions. See #load_from_json for an
   # example of this.
   class Instructions
-
     ##
     # Raised by instruction validation methods.
     class ValidationError < StandardError
@@ -35,15 +33,15 @@ class ByteInterpreter
 
     ##
     # Valid values for the :type key in the instructions Hash.
-    VALID_TYPES = ["bin", "str"]
+    VALID_TYPES = %w[bin str].freeze
 
     ##
     # Valid values for binary types for the :size key in the instructions Hash.
-    VALID_BIN_SIZES = [1, 2, 4, 8]
+    VALID_BIN_SIZES = [1, 2, 4, 8].freeze
 
     ##
     # Keys that are in every properly-formatted instructions Hash.
-    FIELD_NAMES = [:key, :type, :size, :signed]
+    FIELD_NAMES = %i[key type size signed].freeze
 
     ##
     # Creates a blank Instructions object.
@@ -70,7 +68,7 @@ class ByteInterpreter
     #   documentation for this class on the appropriate format for this Hash.
     # @return [void]
     def add_field(field:)
-      @data.push(field.select {|k,v| FIELD_NAMES.include? k})
+      @data.push(field.select { |k, _v| FIELD_NAMES.include? k })
       validate_field(field: @data.last)
     end
 
@@ -83,7 +81,7 @@ class ByteInterpreter
     #   **including** the filetype extension, if any.
     # @return [void]
     def load_from_json(filename:)
-      json_fields = JSON.parse(File.open(filename, "rt") {|file| file.read}, {:symbolize_names => true})
+      json_fields = JSON.parse(File.open(filename, "rt", &:read), symbolize_names: true)
       json_fields.each do |field|
         add_field(field: field)
       end
@@ -97,19 +95,16 @@ class ByteInterpreter
     #   format
     def validate_field(field:)
       unless VALID_TYPES.include? field[:type]
-        raise ValidationError, "Illegal type defined at key \"#{field[:key]}\": #{field[:type]}. Valid types are #{VALID_TYPES}."
-        return false
+        raise ValidationError, "Illegal type defined at key \"#{field[:key]}\": #{field[:type]}.
+        Valid types are #{VALID_TYPES}."
       end
 
-      if (field[:type] == "bin") && (!VALID_BIN_SIZES.include? (field[:size]))
-        raise ValidationError, "Illegal size defined for binary field at key \"#{field[:key]}\": #{field[:size]}. Valid sizes for binary values are #{VALID_BIN_SIZES}."
-        return false
+      if (field[:type] == "bin") && !VALID_BIN_SIZES.include?(field[:size])
+        raise ValidationError, "Illegal size defined for binary field at key \"#{field[:key]}\": #{field[:size]}.
+        Valid sizes for binary values are #{VALID_BIN_SIZES}."
       end
 
-      return true
+      true
     end
-
   end
-
-
 end

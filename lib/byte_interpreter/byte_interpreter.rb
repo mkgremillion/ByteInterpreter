@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative 'byte_interpreter/instructions.rb'
+require_relative "byte_interpreter/instructions.rb"
 
 ##
 # The ByteInterpreter is a tool used to extract bytes and strings from a binary
@@ -8,7 +8,6 @@ require_relative 'byte_interpreter/instructions.rb'
 # take a series of instructions to extract or encode data in an ordinal manner,
 # suitable for writing binary files with rigid structure size requirements.
 class ByteInterpreter
-
   ##
   # Reads the endian mode being used by the interpreter.
   attr_reader :endian_mode
@@ -36,15 +35,10 @@ class ByteInterpreter
   # @param new_stream [#read, #write] The IO stream, or IO-like object, that
   #   the interpreter will perform operations on. See #new for what is expected
   #   of this stream.
-  # @return [ByteInterpreter] self
+  # @return [void]
   def iostream=(new_stream)
-    if stream_like?(obj: new_stream)
-      @iostream = new_stream if stream_like?(obj: new_stream)
-    else
-      raise ArgumentError.new("Object given is not stream-like.")
-    end
-
-    self
+    raise ArgumentError "Object given is not stream-like." unless stream_like?(obj: new_stream)
+    @iostream = new_stream
   end
 
   ##
@@ -69,7 +63,7 @@ class ByteInterpreter
   # @param size [Integer] The number of bytes to read from the stream. Unlike
   #   #interpret_bytes, this size can be any positive integer.
   # @return [String] the interpreted string
-  def interpret_string(size: )
+  def interpret_string(size:)
     @iostream.read(size)
   end
 
@@ -84,9 +78,7 @@ class ByteInterpreter
   #   into +size+ bytes. To avoid unintended behavior, you should validate your
   #   input into this method.
   def encode_bytes(value:, size:, signed:)
-    unless value.respond_to? :pack
-      value = Array(value)
-    end
+    value = Array(value) unless value.respond_to? :pack
     @iostream.write(value.pack(build_directive(size: size, signed: signed)))
   end
 
@@ -137,12 +129,12 @@ class ByteInterpreter
         value = interpret_string(size: field[:size])
       end
 
-      struct_size = struct_size + field[:size]
+      struct_size += field[:size]
 
       yield field[:key], value
     end
 
-    return struct_size
+    struct_size
   end
 
   ##
@@ -165,22 +157,21 @@ class ByteInterpreter
       if field[:type] == "bin"
         encode_bytes(value: values[key], size: field[:size], signed: field[:signed])
       elsif field[:type] == "str"
-        encode_string(value: values[key],size: field[:size])
+        encode_string(value: values[key], size: field[:size])
       end
 
-      struct_size = struct_size + field[:size]
+      struct_size += field[:size]
     end
 
-    return struct_size
+    struct_size
   end
-
 
   private
 
   ##
   # This constant maps byte lengths to their respective Strings for the
   # directives in Array#pack and String#unpack.
-  DIRECTIVE_SIZES = {1 => "C", 2 => "S", 4 => "L", 8 => "Q"}
+  DIRECTIVE_SIZES = { 1 => "C", 2 => "S", 4 => "L", 8 => "Q" }.freeze
 
   ##
   # Uses DIRECTIVE_SIZES to translate a byte length to a usable String.
@@ -188,11 +179,8 @@ class ByteInterpreter
   # @raise [ArgumentError] if +size+ is not 1, 2, 4, or 8.
   # @return [String] the translated directive String.
   def determine_directive_letter(size:)
-    if DIRECTIVE_SIZES.has_key?(size)
-      return DIRECTIVE_SIZES[size].dup
-    else
-      raise ArgumentError.new("Invalid size argument (#{size}). See documentation for valid sizes.")
-    end
+    raise ArgumentError "Invalid size argument (#{size})." unless DIRECTIVE_SIZES.key?(size)
+    DIRECTIVE_SIZES[size].dup
   end
 
   ##
@@ -203,11 +191,11 @@ class ByteInterpreter
   def determine_endian_glyph
     case endian_mode
     when :little
-      return "<"
+      "<"
     when :big
-      return ">"
+      ">"
     else
-      return ""
+      ""
     end
   end
 
@@ -217,13 +205,11 @@ class ByteInterpreter
   # @param signed [Boolean] Set this to true if the bytes being written can be
   #   negative and positive, false otherwise.
   # @return [String] the built directive String
-  def build_directive(size: , signed:)
+  def build_directive(size:, signed:)
     directive = determine_directive_letter(size: size)
     directive.downcase! if signed
 
-    if "SsLlQqJjIi".include?(directive)
-      directive += determine_endian_glyph
-    end
+    directive += determine_endian_glyph if "SsLlQqJjIi".include?(directive)
 
     directive
   end
@@ -236,7 +222,6 @@ class ByteInterpreter
   # @note For fun, consider making an inverse of this method named
   #   "illiterate?"
   def stream_like?(obj:)
-    return obj.respond_to?(:read) && obj.respond_to?(:write)
+    obj.respond_to?(:read) && obj.respond_to?(:write)
   end
-
 end

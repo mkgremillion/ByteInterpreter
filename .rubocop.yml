@@ -1,2 +1,11 @@
+# The community style guide says either style is fine, and I prefer double-quotes.
 Style/StringLiterals:
   EnforcedStyle: double_quotes
+
+# My screen, and most other screens, are large enough to handle more than 80 characters per line.
+Metrics/LineLength:
+  Max: 120
+
+#Linux newlines, baby!
+Layout/EndOfLine:
+  EnforcedStyle: lf
