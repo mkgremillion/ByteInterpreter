@@ -2,3 +2,5 @@ QuickStructScript.rb
 MS_PARAM.BIN
 MSParamStruct.json
 .yardoc/
+*.gem
+*.gemspec

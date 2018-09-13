@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "byte_interpreter/instructions.rb"
+require_relative "byteinterpreter/instructions.rb"
 
 ##
 # The ByteInterpreter is a tool used to extract bytes and strings from a binary
