@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require './byte_interpreter/instructions.rb'
+require_relative 'byte_interpreter/instructions.rb'
 
 ##
 # The ByteInterpreter is a tool used to extract bytes and strings from a binary
@@ -26,9 +26,9 @@ class ByteInterpreter
   #   also assumes you have opened the stream as binary (as opposed to text),
   #   and for the appropriate operations (read/write).
   def initialize(endian: nil, stream:)
-    @endian_mode = endian.to_sym
+    @endian_mode = endian
     @instructions = nil
-    iostream = stream
+    @iostream = stream
   end
 
   ##
@@ -102,7 +102,7 @@ class ByteInterpreter
   #   strings that are larger than +size+, or want to handle size differences
   #   differently than this method.
   def encode_string(value:, size:)
-    @iostream.write(value.ljust(size, "\x20"))
+    @iostream.write(value.slice(0, size).ljust(size, "\x20"))
   end
 
   ##
@@ -206,6 +206,8 @@ class ByteInterpreter
       return "<"
     when :big
       return ">"
+    else
+      return ""
     end
   end
 
