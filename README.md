@@ -1,3 +1,7 @@
+[![Gem Version](https://badge.fury.io/rb/byteinterpreter.svg)](https://badge.fury.io/rb/byteinterpreter)
+[![Maintainability](https://api.codeclimate.com/v1/badges/f071bb580f1d24bb78db/maintainability)](https://codeclimate.com/github/mkgremillion/ByteInterpreter/maintainability)
+[![Inline docs](http://inch-ci.org/github/mkgremillion/byteinterpreter.svg?branch=master)](http://inch-ci.org/github/mkgremillion/byteinterpreter)
+
 ByteInterpreter is a tool to interpret binary data in a fixed-length data
 structure into another format, or to encode data from another format into that
 same fixed-length data structure.
