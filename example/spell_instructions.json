@@ -1,0 +1,17 @@
+[
+  {
+    "key": "element", "type": "bin", "size": 1, "signed": false
+  },
+  {
+    "key": "name", "type": "str", "size": 20, "signed": false
+  },
+  {
+    "key": "power", "type": "bin", "size": 2, "signed": false
+  },
+  {
+    "key": "description", "type": "str", "size": 50, "signed": false
+  },
+  {
+    "key": "speed", "type": "bin", "size": 1, "signed": true
+  }
+]
