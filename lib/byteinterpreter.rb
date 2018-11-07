@@ -13,6 +13,10 @@ class ByteInterpreter
   attr_reader :endian_mode
 
   ##
+  # Returns the iostream being used by the ByteInterpreter.
+  attr_reader :iostream
+
+  ##
   # Creates and sets up a new ByteInterpreter.
   # @param endian [:little, :big, nil] Default for this value is nil. The
   #   endian mode that will be used by the interpreter for reading/writing
@@ -166,7 +170,50 @@ class ByteInterpreter
     struct_size
   end
 
+  def interpret(&block)
+    return unless block_given?
+
+    @write_mode = false
+    @interpreted_values = Hash.new
+    instance_eval(&block)
+  end
+
   private
+
+  def byte(key, size, signed=false)
+    @interpreted_values[key] = interpret_bytes(size: size, signed: signed)
+  end
+
+  def string(key, size)
+    @interpreted_values[key] = interpret_string(size: size)
+  end
+
+  def bitset(key, size)
+
+  end
+
+  def pointer(key, size, &block)
+    @interpreted_values[key] = interpret_bytes(size: size, signed: false)
+
+    if block_given?
+      old_pos = iostream.pos
+      iostream.seek(@interpreted_values[key], :SET)
+      instance_eval(&block)
+      iostream.seek(old_pos, :SET)
+    end
+  end
+
+  ##
+  # Alias for +true+. Used for #interpret and #encode DSL-likes.
+  def signed
+    true
+  end
+
+  ##
+  # Alias for +false+. Used for #interpret and #encode DSL-likes.
+  def unsigned
+    false
+  end
 
   ##
   # This constant maps byte lengths to their respective Strings for the
@@ -223,5 +270,21 @@ class ByteInterpreter
   #   "illiterate?"
   def stream_like?(obj:)
     obj.respond_to?(:read) && obj.respond_to?(:write)
+  end
+end
+
+File.open("MS_PARAM.BIN", "rb") do |f|
+  bi = ByteInterpreter.new(stream: f)
+  f.seek(0x3D*108)
+  bi.interpret do
+    byte   :id,    1, unsigned
+    byte   :icon,  1, unsigned
+    string :name, 18
+    pointer :test, 1 do
+      byte :test2, 1, signed
+      byte :test3, 1, signed
+    end
+    string :points, 2
+    puts @interpreted_values
   end
 end
